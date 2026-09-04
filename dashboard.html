@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CakeCue &mdash; research dashboard</title>
+<meta name="robots" content="noindex">
+
+<!-- This page is for YOU, not for participants. It never collects anything.
+     It only reads results that already exist and works out what they say. -->
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dash">
+
+<div class="screen wide">
+
+  <header class="dash-head">
+    <h1>CakeCue &mdash; research dashboard</h1>
+    <p class="sub">
+      Findings from the identity testing sessions. This reads recognition,
+      meaning, memorability, emotion, participation and system flexibility
+      &mdash; not preference alone.
+    </p>
+
+    <!-- Where the numbers on screen came from. Shown so you are never
+         looking at a chart without knowing whose data it is. -->
+    <p id="source-note" class="source-note">Loading&hellip;</p>
+
+    <div class="dash-actions">
+      <button id="btn-local"  class="btn" type="button">Load from this browser</button>
+      <button id="btn-sample" class="btn ghost" type="button">Load sample data</button>
+      <span class="spacer"></span>
+      <button id="btn-csv"    class="btn ghost" type="button">Export CSV</button>
+      <button id="btn-json"   class="btn ghost" type="button">Export JSON</button>
+      <button id="btn-clear"  class="btn danger-ghost" type="button">Clear this browser</button>
+    </div>
+
+    <!-- Responses submitted through Formspree are downloaded from Formspree as
+         a file, then dropped here. That keeps the dashboard fully static. -->
+    <div id="dropzone" class="dropzone" tabindex="0" role="button"
+         aria-label="Drop a results file here, or click to choose a file">
+      <strong>Drop a results file here</strong>
+      <span class="faint small">
+        .json or .csv exported from Formspree, from this dashboard, or from a
+        participant&rsquo;s device &mdash; or click to choose a file
+      </span>
+      <input id="file-input" type="file" accept=".json,.csv,application/json,text/csv" hidden>
+    </div>
+  </header>
+
+  <!-- Each section is filled in by js/dashboard.js. Order is deliberate:
+       how much data exists, then how the candidates compare, then what is
+       still thin, then meaning, then the participants' own words, and only
+       at the very end a synthesis. -->
+
+  <section id="sec-overview" class="dash-sec" aria-label="Overview"></section>
+  <section id="sec-compare"  class="dash-sec" aria-label="Candidate comparison"></section>
+  <section id="sec-coverage" class="dash-sec" aria-label="Sample coverage"></section>
+  <section id="sec-meaning"  class="dash-sec" aria-label="Meaning and participation"></section>
+  <section id="sec-words"    class="dash-sec" aria-label="Word associations"></section>
+  <section id="sec-quotes"   class="dash-sec" aria-label="What participants said"></section>
+  <section id="sec-synth"    class="dash-sec" aria-label="Synthesis"></section>
+
+  <footer class="dash-foot faint small">
+    <p>
+      Candidate names are shown here because this view is for the designer.
+      Participants only ever saw neutral codes (A&ndash;E), so the label could
+      not colour their answer.
+    </p>
+    <p>
+      Blind games (first impression, recognition, association, trust, emotion,
+      brand role) used wordless <code>SYMBOL_ONLY</code> assets. System and
+      final-decision games used the complete <code>FULL_LOCKUP</code> artwork.
+      Read every result with that distinction in mind.
+    </p>
+  </footer>
+
+</div>
+
+<!-- Load order matters:
+     1. config      &mdash; endpoint settings
+     2. questions   &mdash; asset registry, options, real candidate names
+     3. data-handler&mdash; storage, flattening, scoring
+     4. dashboard   &mdash; reads the above and renders -->
+<script src="js/formspree-config.js"></script>
+<script src="js/questions.js"></script>
+<script src="js/data-handler.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

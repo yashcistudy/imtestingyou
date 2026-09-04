@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CakeCue Identity Testing Lab</title>
+  <meta name="description" content="A short visual identity research session for the CakeCue project." />
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Header: study label, progress, language switch. Deliberately plain so
+         the interface never competes with the marks being tested. -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <span class="brandmark">CakeCue &middot; Identity Research</span>
+        <div class="topbar-spacer"></div>
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-label" id="progress-label"></div>
+          <div class="progress-track" role="progressbar" aria-labelledby="progress-label">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+        </div>
+        <button type="button" class="lang-toggle" id="lang-toggle">فارسی</button>
+      </div>
+    </header>
+
+    <main id="app-root">
+      <!-- Screens are rendered here by app.js -->
+      <div class="screen">
+        <p class="muted">Loading…</p>
+      </div>
+    </main>
+
+  </div>
+
+  <!--
+    Load order matters:
+      1. formspree-config.js  — where responses are sent (edit this file)
+      2. study-config.js      — which games are switched on (edit this file)
+      3. questions.js         — all assets, questions and copy (edit this file)
+      4. data-handler.js      — sessions, sampling, scoring, export
+      5. app.js               — renders the screens
+  -->
+  <script src="js/formspree-config.js"></script>
+  <script src="js/study-config.js"></script>
+  <script src="js/questions.js"></script>
+  <script src="js/data-handler.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

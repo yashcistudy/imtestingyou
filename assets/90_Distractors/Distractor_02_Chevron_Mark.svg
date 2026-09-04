@@ -1,0 +1,5 @@
+<svg width="640" height="530" viewBox="0 0 640 530" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- stacked chevrons - pure diagonal rhythm, no enclosure -->
+<path d="M150 330 L320 170 L490 330" fill="none" stroke="black" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M150 420 L320 260 L490 420" fill="none" stroke="black" stroke-width="12" stroke-linejoin="round" stroke-linecap="round" opacity="0.35"/>
+</svg>
