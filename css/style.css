@@ -294,9 +294,11 @@ textarea::placeholder, input::placeholder { color: var(--text-faint); }
 .compare-card .thumb {
   background: var(--stage); border: 1px solid var(--stage-border);
   border-radius: var(--r-sm); padding: 14px;
-  display: flex; align-items: center; justify-content: center; min-height: 118px;
+  display: flex; align-items: center; justify-content: center; min-height: 156px;
 }
-.compare-card .thumb img { max-width: 100%; max-height: 90px; width: auto; height: auto; object-fit: contain; }
+/* Marks need room to read. Below ~130px the lockups turn into noise, which
+   makes participants judge legibility instead of the identity. */
+.compare-card .thumb img { max-width: 100%; max-height: 132px; width: auto; height: auto; object-fit: contain; }
 .compare-card .code {
   font-size: 12px; font-weight: 600; letter-spacing: .08em;
   color: var(--text-faint); text-align: center;
@@ -306,7 +308,7 @@ textarea::placeholder, input::placeholder { color: var(--text-faint); }
 /* Pick-one row of thumbnails */
 .pick-row {
   display: grid; gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   margin-bottom: 8px;
 }
 .pick {

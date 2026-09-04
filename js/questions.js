@@ -141,6 +141,7 @@
     'game7_trust',      // trust
     'game9_sliders',    // personality / emotional response
     'game10_role',      // brand role / meaning
+    'game23_final',     // final choice: judged on the form, not the wordmark
     'micro_sequence',   // does the form read as a build sequence?
     'micro_decoration'  // does decoration read as decoration?
   ];
@@ -198,7 +199,7 @@
     { value: 'decoration',  en: 'Cake decoration',             fa: 'تزئین کیک' },
     { value: 'tool_kit',    en: 'A baking tool or kit',        fa: 'ابزار یا کیت پخت کیک' },
     { value: 'gift',        en: 'A gift brand',                fa: 'برند هدیه' },
-    { value: 'cafe',        en: 'A café or restaurant',        fa: 'کافه یا رستوران' },
+    { value: 'cafe',        en: 'A caf�� or restaurant',        fa: 'کافه یا رستوران' },
     { value: 'kids',        en: "A children's activity",       fa: 'فعالیت کودکان' },
     { value: 'other',       en: 'Something else',              fa: 'چیز دیگری' }
   ];
@@ -249,7 +250,7 @@
 
   // Game 13 — what connects the family
   var CONNECTOR_OPTIONS = [
-    { value: 'frame',      en: 'The frame or outline',        fa: 'قاب یا خط بیرونی' },
+    { value: 'frame',      en: 'The frame or outline',        fa: 'قا�� یا خط بیرونی' },
     { value: 'layers',     en: 'The stacked layers',          fa: 'لایه‌های روی هم' },
     { value: 'slice',      en: 'The slice or wedge',          fa: 'برش یا گوهه' },
     { value: 'typography', en: 'The way the words are set',   fa: 'شکل چیدمان کلمات' },
@@ -561,7 +562,7 @@
       f_h: 'کمی تغییر موضوع',
       f_p: 'دو پرسش بی‌ربط',
       f_note: 'ربطی به صفحه‌های قبل ندارد — فقط یک وقفه کوتاه.',
-      f_q1: 'معمولاً در شهر چگونه جابه‌جا می‌شوید؟',
+      f_q1: 'معمولاً ��ر شهر چگونه جابه‌جا می‌شوید؟',
       f_q2: 'در چه زمانی از روز سرحال‌ترید؟',
 
       g2_h: 'کدام‌یک را دیدید؟',
