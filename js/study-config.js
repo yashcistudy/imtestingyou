@@ -23,7 +23,8 @@ window.CC_ACTIVE_GAMES = [
   'game2',   // 2. memory and recognition                    (blind, with foils)
   'game7',   // 7. trust test                                (blind)
   'game13',  // 13. identity system flexibility              (full lockups)
-  'game23',  // 23. final decision                           (full lockups)
+  'build',   // 24. build the cake: assemble the construction states (blind)
+  'game23',  // 23. final decision                           (blind marks)
 
   'thanks'
 ];

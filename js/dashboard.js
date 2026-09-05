@@ -263,15 +263,14 @@
     decCard.appendChild(decList);
     wrap.appendChild(decCard);
 
-    /* ---- Build the cake: how the parts were assembled ----
-       Four separate readings, each answering something different:
-         stack    did the authored vertical order survive contact?
-         frosting was the final touch treated as final?
-         nesting  does the frame read as a container or as another shape?
-         parts    which piece is load-bearing, which is felt to be spare? */
-    var withBuild = sessions.filter(function (s) { return s.games && s.games.build && s.games.build.placed; });
+    /* ---- Build the cake: the parts read in relation to each other ----
+       Three separate questions live here, and they answer different things:
+         order    is the construction legible as a sequence at all?
+         parts    which piece is load-bearing, which is felt to be spare?
+         finish   does the last state actually read as a finished thing? */
+    var withBuild = sessions.filter(function (s) { return s.games && s.games.build && s.games.build.order; });
     var buildCard = el('div', { class: 'quote-card' }, [
-      el('h3', { text: 'Build the cake — how the parts were assembled' })
+      el('h3', { text: 'Build the cake — how the construction is read' })
     ]);
     var buildList = el('ul');
 
@@ -281,55 +280,33 @@
       var bScores = withBuild.map(function (s) { return D.Score.buildScore(s); })
         .filter(function (v) { return typeof v === 'number'; });
       var bMean = D.util.mean(bScores);
+      var exact = withBuild.filter(function (s) { return D.Score.buildExact(s) === true; }).length;
 
       buildList.appendChild(el('li', {}, [
         el('span', {
-          text: 'Authored stacking order held: ' +
-            (bMean === null ? '–' : Math.round(bMean * 100) + '%') +
-            ' (n=' + bScores.length + ')'
+          text: 'Order agreement with the authored sequence: ' +
+            (bMean === null ? '–' : Math.round(bMean * 100) + '%') + ' (n=' + bScores.length + ')'
         }),
         withBuild.length < LOW_N ? el('span', { class: 'flag-lown', text: 'low n' }) : null
       ]));
-
-      function pct(fn) {
-        var vals = withBuild.map(fn).filter(function (v) { return v === true || v === false; });
-        if (!vals.length) return null;
-        return Math.round(vals.filter(Boolean).length / vals.length * 100);
-      }
-      var frost = pct(function (s) { return D.Score.buildFrostingTop(s); });
-      var base = pct(function (s) { return D.Score.buildBaseBottom(s); });
-      if (frost !== null) {
-        buildList.appendChild(el('li', { text: 'Put the frosting on top: ' + frost + '%' }));
-      }
-      if (base !== null) {
-        buildList.appendChild(el('li', { text: 'Put a bottom-cake part at the bottom: ' + base + '%' }));
-      }
-
-      var nest = D.util.mean(withBuild.map(function (s) { return D.Score.buildLayersInFrame(s); })
-        .filter(function (v) { return typeof v === 'number'; }));
-      if (nest !== null) {
-        buildList.appendChild(el('li', {
-          text: 'Layers dropped inside the frame: ' + nest.toFixed(1) + ' of 2 — ' +
-            (nest >= 1 ? 'the frame reads as a container' : 'the frame reads as another shape to stack')
-        }));
-      }
+      buildList.appendChild(el('li', {
+        text: 'Reproduced the exact authored order: ' +
+          Math.round(exact / withBuild.length * 100) + '% (' + exact + ' of ' + withBuild.length + ')'
+      }));
 
       var fin = D.util.mean(withBuild.map(function (s) { return s.games.build.finished_score; })
         .filter(function (v) { return typeof v === 'number'; }));
       buildList.appendChild(el('li', {
-        text: 'What they built feels finished: ' + (fin === null ? '–' : fin.toFixed(1) + ' / 5')
+        text: 'Last piece placed feels finished: ' + (fin === null ? '–' : fin.toFixed(1) + ' / 5')
       }));
 
       // Which piece people reach for first, and which they treat as spare.
-      [['first', 'Reached for first'],
+      [['order', 'Chosen as step 1'],
        ['essential', 'Called load-bearing'],
        ['removable', 'Called droppable']].forEach(function (pair) {
         var votes = tally(withBuild.map(function (s) {
           var g = s.games.build;
-          if (pair[0] !== 'first') return g[pair[0]];
-          var ids = Object.keys(g.placed || {});
-          ids.sort(function (x, y) { return g.placed[x].seq - g.placed[y].seq; });
-          return ids[0];
+          return pair[0] === 'order' ? (g.order && g.order[0]) : g[pair[0]];
         }));
         var total = votes.reduce(function (a, b) { return a + b.n; }, 0);
         if (!total) return;

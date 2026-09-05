@@ -795,304 +795,171 @@
       return { node: body, wide: true, validate: function () { return r.effect ? null : t('required'); } };
     },
 
-    /* ---- BUILD THE CAKE: free assembly from the authored components ----
+    /* ---- BUILD THE CAKE: assemble the mark from its construction states ----
 
-       The participant gets the six atomic parts the mark is actually made
-       from and assembles a cake on an empty stage. Nothing on the stage
-       suggests where anything should go: no outline, no ghost, no snapping
-       grid. That emptiness is the measurement. If a guide were drawn, we
-       would be testing whether people can follow a guide, not how they think
-       the parts relate.
+       The participant drags the five authored construction states into the
+       order they believe the mark is built in. This is the one screen that
+       asks about the parts IN RELATION to each other rather than about a
+       finished mark, so it measures three things at once:
 
-       Three interaction routes, because a drag-only build would exclude a
-       large share of participants:
-         mouse   native drag from the tray, then pointer-drag to reposition
-         touch   tap a piece, tap the stage, then drag to adjust
-         keyboard tab to a piece, place it, then arrow-key it into position
+         order            do people read the states as a sequence at all, and
+                          is their sequence the authored one?
+         essential /      which piece carries the idea, and which is felt to
+         removable        be optional - i.e. how the parts depend on each other
+         finished_score   does the final state actually read as finished?
 
-       Pieces keep their authored proportions relative to one another. The
-       widest part (the bottom cake structure) is scaled to a fixed share of
-       the stage and every other part is scaled by the same factor, so the
-       relative sizes are the artwork's, not mine. */
+       Blind screen: the pieces are shown wordless. If "CAKE" were visible on
+       every piece, the wordmark would order the sequence for them.
+
+       Interaction is deliberately doubled up: native drag and drop for mouse
+       users, and tap-a-piece-then-tap-a-slot for touch and keyboard, which
+       drag events do not serve. Every control is a real <button>. */
     game_build: function () {
-      var STAGE_ASPECT = 4 / 3;        // stage width / height, matches the CSS
-      var BASE_SHARE = 0.42;           // widest part as a share of stage width
-      var NUDGE = 0.02;                // arrow-key step, 2% of the stage
-
+      var SLOTS = 5;
       var r = D.Session.getGame('build');
-      if (!r || !r.placed) {
-        r = { placed: {}, moves: 0, essential: null, removable: null,
-              finished_score: null, reason: '' };
+      if (!r || !r.order) {
+        r = { order: [null, null, null, null, null], moves: 0, essential: null,
+              removable: null, finished_score: null, reason: '' };
       }
-
       var pieces = (D.Session.data.assignment.build || [])
         .map(function (id) { return A.byId(id); }).filter(Boolean);
-
-      var maxW = 1;
-      pieces.forEach(function (a) { if (a.w > maxW) maxW = a.w; });
-
-      // Normalised footprint of a piece on the stage, 0..1 of stage width
-      // and of stage height. Stored with the placement so the analysis never
-      // has to re-derive geometry from the asset files.
-      function normW(a) { return (a.w / maxW) * BASE_SHARE; }
-      function normH(a) { return normW(a) * (a.h / a.w) * STAGE_ASPECT; }
 
       function commit() { D.Session.setGame('build', r); }
       commit();
 
-      var selected = null;             // piece awaiting a tap on the stage
+      var selected = null;   // id chosen by tapping, awaiting a slot
       var started = Date.now();
-      var nextSeq = 1;
-      Object.keys(r.placed).forEach(function (id) {
-        if (r.placed[id].seq >= nextSeq) nextSeq = r.placed[id].seq + 1;
-      });
 
-      var stage = el('div', { class: 'asm-stage' });
-      var tray = el('div', { class: 'asm-tray' });
-      var counter = el('div', { class: 'asm-count' });
+      function placedIndex(id) { return r.order.indexOf(id); }
 
-      function isPlaced(id) { return !!r.placed[id]; }
-      function placedCount() { return Object.keys(r.placed).length; }
-
-      function clamp01(v, half) {
-        var lo = half, hi = 1 - half;
-        if (lo > hi) return 0.5;
-        return v < lo ? lo : (v > hi ? hi : v);
-      }
-
-      // Drop or move a piece so its centre sits at (nx, ny) on the stage.
-      function placeAt(a, nx, ny, countMove) {
-        var nw = normW(a), nh = normH(a);
-        var p = r.placed[a.id];
-        if (!p) {
-          p = r.placed[a.id] = { seq: nextSeq++, w: round3(nw), h: round3(nh) };
-        }
-        p.x = round3(clamp01(nx, nw / 2));
-        p.y = round3(clamp01(ny, nh / 2));
-        if (countMove) r.moves = (r.moves || 0) + 1;
-        selected = a.id;
-        commit();
-      }
-
-      function round3(v) { return Math.round(v * 1000) / 1000; }
-
-      function returnToTray(id) {
-        if (!r.placed[id]) return;
-        delete r.placed[id];
+      // Put `id` into slot `idx`. If the slot is taken, the two swap; if the
+      // piece came from the tray, the previous occupant returns to the tray.
+      function place(id, idx) {
+        var from = placedIndex(id);
+        var occupant = r.order[idx];
+        if (from >= 0) r.order[from] = occupant || null;
+        r.order[idx] = id;
         r.moves = (r.moves || 0) + 1;
-        if (selected === id) selected = null;
+        selected = null;
         commit(); draw();
       }
 
-      // Where on the stage did this pointer or drop event land?
-      function stagePoint(e) {
-        var box = stage.getBoundingClientRect();
-        return {
-          x: (e.clientX - box.left) / box.width,
-          y: (e.clientY - box.top) / box.height
-        };
+      function take(idx) {
+        if (!r.order[idx]) return;
+        r.order[idx] = null;
+        r.moves = (r.moves || 0) + 1;
+        commit(); draw();
       }
 
-      /* ---- tray -> stage, native drag and drop ---- */
-      stage.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        stage.classList.add('over');
-      });
-      stage.addEventListener('dragleave', function () { stage.classList.remove('over'); });
-      stage.addEventListener('drop', function (e) {
-        e.preventDefault();
-        stage.classList.remove('over');
-        var a = A.byId(e.dataTransfer.getData('text/plain'));
-        if (!a) return;
-        var pt = stagePoint(e);
-        placeAt(a, pt.x, pt.y, true);
-        draw();
-      });
+      var trayWrap = el('div', { class: 'build-tray' });
+      var slotWrap = el('div', { class: 'build-slots' });
 
-      /* ---- tap a piece, then tap the stage ---- */
-      stage.addEventListener('click', function (e) {
-        if (!selected || isPlaced(selected)) return;
-        var a = A.byId(selected);
-        if (!a) return;
-        var pt = stagePoint(e);
-        placeAt(a, pt.x, pt.y, true);
-        draw();
-      });
-
-      /* ---- pointer-drag a piece already on the stage ----
-         Position is written straight to the node during the drag and only
-         committed on release, so dragging stays smooth and the move counter
-         records one move per drag rather than one per pixel. */
-      function makeDraggable(node, a) {
-        var drag = null;
-
-        node.addEventListener('pointerdown', function (e) {
-          if (e.button !== undefined && e.button !== 0) return;
-          var box = stage.getBoundingClientRect();
-          var p = r.placed[a.id];
-          drag = {
-            offX: e.clientX - (box.left + p.x * box.width),
-            offY: e.clientY - (box.top + p.y * box.height),
-            box: box, moved: false
-          };
-          selected = a.id;
+      function dragPiece(node, id) {
+        node.setAttribute('draggable', 'true');
+        node.addEventListener('dragstart', function (e) {
+          e.dataTransfer.setData('text/plain', id);
+          e.dataTransfer.effectAllowed = 'move';
           node.classList.add('dragging');
-          node.setPointerCapture(e.pointerId);
-          e.preventDefault();
         });
-
-        node.addEventListener('pointermove', function (e) {
-          if (!drag) return;
-          drag.moved = true;
-          var nw = normW(a), nh = normH(a);
-          var nx = clamp01((e.clientX - drag.offX - drag.box.left) / drag.box.width, nw / 2);
-          var ny = clamp01((e.clientY - drag.offY - drag.box.top) / drag.box.height, nh / 2);
-          node.style.left = (nx * 100) + '%';
-          node.style.top = (ny * 100) + '%';
-          drag.nx = nx; drag.ny = ny;
-        });
-
-        function end() {
-          if (!drag) return;
-          node.classList.remove('dragging');
-          if (drag.moved && drag.nx !== undefined) {
-            placeAt(a, drag.nx, drag.ny, true);
-          }
-          drag = null;
-          draw();
-        }
-        node.addEventListener('pointerup', end);
-        node.addEventListener('pointercancel', end);
-
-        // Keyboard: nudge with the arrows, remove with delete or backspace.
-        node.addEventListener('keydown', function (e) {
-          var step = e.shiftKey ? NUDGE / 4 : NUDGE;
-          var p = r.placed[a.id];
-          if (!p) return;
-          var dx = 0, dy = 0;
-          if (e.key === 'ArrowLeft') dx = -step;
-          else if (e.key === 'ArrowRight') dx = step;
-          else if (e.key === 'ArrowUp') dy = -step;
-          else if (e.key === 'ArrowDown') dy = step;
-          else if (e.key === 'Delete' || e.key === 'Backspace') {
-            e.preventDefault(); returnToTray(a.id); return;
-          } else return;
-          e.preventDefault();
-          placeAt(a, p.x + dx, p.y + dy, true);
-          draw();
-          var again = stage.querySelector('[data-piece="' + a.id + '"]');
-          if (again) again.focus();
-        });
+        node.addEventListener('dragend', function () { node.classList.remove('dragging'); });
       }
 
-      function pieceImage(a) {
-        return el('img', { src: A.srcFor(a, 'game_build'), alt: '', 'aria-hidden': 'true' });
+      function dropTarget(node, idx) {
+        node.addEventListener('dragover', function (e) {
+          e.preventDefault(); node.classList.add('over');
+        });
+        node.addEventListener('dragleave', function () { node.classList.remove('over'); });
+        node.addEventListener('drop', function (e) {
+          e.preventDefault(); node.classList.remove('over');
+          var id = e.dataTransfer.getData('text/plain');
+          if (id && A.byId(id)) place(id, idx);
+        });
       }
 
       function draw() {
-        /* ---- tray: parts not yet on the stage ---- */
-        tray.innerHTML = '';
-        var loose = pieces.filter(function (a) { return !isPlaced(a.id); });
-
+        // --- tray: everything not yet placed ---
+        trayWrap.innerHTML = '';
+        var loose = pieces.filter(function (a) { return placedIndex(a.id) < 0; });
         if (!loose.length) {
-          tray.appendChild(el('div', { class: 'empty-note', text: t('b_tray_empty') }));
+          trayWrap.appendChild(el('div', { class: 'empty-note', text: t('b_tray_empty') }));
         }
         loose.forEach(function (a) {
           var node = el('button', {
             type: 'button',
-            class: 'asm-piece' + (selected === a.id ? ' selected' : ''),
+            class: 'build-piece' + (selected === a.id ? ' selected' : ''),
             'aria-pressed': selected === a.id ? 'true' : 'false',
             'aria-label': a.code,
             onclick: function () {
               selected = (selected === a.id) ? null : a.id;
               draw();
             }
-          }, [pieceImage(a), el('span', { class: 'code', text: a.code })]);
-
-          node.setAttribute('draggable', 'true');
-          node.addEventListener('dragstart', function (e) {
-            e.dataTransfer.setData('text/plain', a.id);
-            e.dataTransfer.effectAllowed = 'move';
-            selected = a.id;
-            node.classList.add('dragging');
-          });
-          node.addEventListener('dragend', function () { node.classList.remove('dragging'); });
-
-          tray.appendChild(node);
+          }, [thumb(a)]);
+          dragPiece(node, a.id);
+          trayWrap.appendChild(node);
         });
 
-        /* ---- stage: what they have built so far ---- */
-        stage.innerHTML = '';
-        if (!placedCount()) {
-          stage.appendChild(el('div', { class: 'asm-stage-note', text: t('b_stage_empty') }));
-        }
-        pieces.forEach(function (a) {
-          var p = r.placed[a.id];
-          if (!p) return;
-          var node = el('button', {
-            type: 'button',
-            class: 'asm-on-stage' + (selected === a.id ? ' selected' : ''),
-            'data-piece': a.id,
-            'aria-label': a.code + ' — ' + t('b_drag_hint'),
-            style: 'left:' + (p.x * 100) + '%;top:' + (p.y * 100) + '%;' +
-                   'width:' + (p.w * 100) + '%;z-index:' + p.seq + ';'
-          }, [pieceImage(a)]);
-          makeDraggable(node, a);
-          stage.appendChild(node);
-        });
+        // --- the five ordered slots ---
+        slotWrap.innerHTML = '';
+        r.order.forEach(function (id, idx) {
+          var asset = id ? A.byId(id) : null;
+          var drop = el('div', { class: 'slot-drop' });
 
-        counter.innerHTML = '';
-        counter.appendChild(el('span', {
-          text: t('b_count', { done: placedCount(), total: pieces.length })
-        }));
-        if (selected && !isPlaced(selected)) {
-          // Keyboard and screen-reader route: no pointer needed to place.
-          counter.appendChild(el('button', {
-            type: 'button', class: 'asm-center',
-            text: t('b_place_center'),
-            onclick: function () {
-              var a = A.byId(selected);
-              if (a) { placeAt(a, 0.5, 0.5, true); draw(); }
-            }
-          }));
-        }
-        if (selected && isPlaced(selected)) {
-          counter.appendChild(el('button', {
-            type: 'button', class: 'asm-center',
-            text: t('b_return'),
-            onclick: function () { returnToTray(selected); }
-          }));
-        }
+          if (asset) {
+            var held = el('div', { class: 'slot-piece' }, [thumb(asset)]);
+            dragPiece(held, asset.id);
+            drop.appendChild(held);
+            drop.appendChild(el('span', { class: 'slot-label', text: t('b_slot', { n: idx + 1 }) }));
+          } else {
+            drop.appendChild(el('button', {
+              type: 'button', class: 'slot-hollow',
+              'aria-label': t('b_slot', { n: idx + 1 }) + ' — ' + t('b_place'),
+              text: selected ? t('b_place') : t('b_empty'),
+              onclick: function () { if (selected) place(selected, idx); }
+            }));
+          }
+
+          var row = el('div', { class: 'build-slot' + (asset ? ' filled' : '') }, [
+            el('span', { class: 'slot-rank', text: String(idx + 1) }),
+            drop,
+            asset ? el('button', {
+              type: 'button', class: 'slot-take', text: t('b_take'),
+              'aria-label': t('b_take') + ' — ' + t('b_slot', { n: idx + 1 }),
+              onclick: function () { take(idx); }
+            }) : null
+          ]);
+
+          // A filled slot accepts a drop too, so pieces can be swapped around.
+          dropTarget(row, idx);
+          slotWrap.appendChild(row);
+        });
       }
 
       var body = el('div', {}, [
         head(t('b_h'), t('b_p')),
         el('p', { class: 'faint small', text: t('b_hint') }),
-        el('div', { class: 'asm-cols' }, [
-          el('div', { class: 'asm-tray-col' }, [
+        el('div', { class: 'build-cols' }, [
+          el('div', {}, [
             el('div', { class: 'build-panel-label', text: t('b_tray') }),
-            tray,
+            trayWrap,
             el('button', {
               type: 'button', class: 'build-reset', text: t('b_reset'),
               onclick: function () {
-                r.placed = {};
+                r.order = [null, null, null, null, null];
                 selected = null;
-                nextSeq = 1;
                 commit(); draw();
               }
             })
           ]),
-          el('div', { class: 'asm-stage-col' }, [
-            el('div', { class: 'build-panel-label', text: t('b_stage') }),
-            stage,
-            counter
+          el('div', {}, [
+            el('div', { class: 'build-panel-label', text: t('b_slots') }),
+            slotWrap
           ])
         ])
       ]);
 
       draw();
 
-      // Does the thing they assembled read as finished to them?
+      // How finished does the state they placed last actually feel?
       var qF = el('div', { class: 'field' });
       function drawF() {
         qF.innerHTML = '';
@@ -1123,7 +990,8 @@
       return {
         node: body, wide: true,
         validate: function () {
-          if (placedCount() < pieces.length) return t('b_all_pieces');
+          var filled = r.order.filter(Boolean).length;
+          if (filled < SLOTS) return t('b_all_slots');
           if (!r.finished_score) return t('required');
           if (!r.essential) return t('required');
           r.response_time_ms = Date.now() - started;

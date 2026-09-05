@@ -55,39 +55,6 @@
     { id: 'proc_05_decorated',  step: 5, code: 'P5', name: 'CakeCue_05_Decorated_Frame',         file: A + '01_Process_Narrative/CakeCue_05_Decorated_Frame.svg' }
   ];
 
-  /* ========================================================================
-     ASSEMBLY COMPONENTS
-     ------------------------------------------------------------------------
-     The atomic parts the final mark is built from, cut out of your
-     components board into individual transparent SVGs. Path data was copied
-     across untouched: only the white background rect and the outlined label
-     text were dropped, and the viewBox was tightened to each part.
-
-     `w` and `h` are the authored dimensions in the board's own units. The
-     assembly game uses them to keep the parts in correct relative scale to
-     one another, so the sizes a participant drags around are yours rather
-     than invented.
-
-     `tier` is the authored vertical position, read off your own labels:
-       1 bottom cake      2 upper layer of the bottom cake
-       3 top cake         4 frosting, the final touch
-     It is the ground truth the stacking score is measured against, and it is
-     never shown or hinted to the participant.
-
-     The four X_ files in the same folder are cumulative states and one
-     duplicate: "bottom cake completed", "added slice", "completed top cake"
-     and "frosting in place". They are deliberately not in this list, because
-     a cake cannot be assembled from both the parts and the finished cake.
-     Move one in only if you also remove the parts it already contains. */
-  var COMPONENTS = [
-    { id: 'comp_c01_bottom_structure', code: 'K1', tier: 1, w: 677,   h: 312,   frame: true, shortName: 'Bottom cake structure', name: 'CakeCue_C01_Bottom_Cake_Structure', file: A + '06_Components/CakeCue_C01_Bottom_Cake_Structure.svg' },
-    { id: 'comp_c02_bottom_layer',     code: 'K2', tier: 1, w: 544,   h: 124,   layer: true, shortName: 'Bottom layer',          name: 'CakeCue_C02_Bottom_Layer',           file: A + '06_Components/CakeCue_C02_Bottom_Layer.svg' },
-    { id: 'comp_c03_top_layer',        code: 'K3', tier: 2, w: 544,   h: 124,   layer: true, shortName: 'Top layer',             name: 'CakeCue_C03_Top_Layer',              file: A + '06_Components/CakeCue_C03_Top_Layer.svg' },
-    { id: 'comp_c04_top_structure',    code: 'K4', tier: 3, w: 312,   h: 160,   shortName: 'Top cake structure',    name: 'CakeCue_C04_Top_Cake_Structure',     file: A + '06_Components/CakeCue_C04_Top_Cake_Structure.svg' },
-    { id: 'comp_c05_top_slice',        code: 'K5', tier: 3, w: 296,   h: 152,   shortName: 'Top slice',             name: 'CakeCue_C05_Top_Slice',              file: A + '06_Components/CakeCue_C05_Top_Slice.svg' },
-    { id: 'comp_c06_frosting',         code: 'K6', tier: 4, w: 434.5, h: 441,   shortName: 'Frosting',              name: 'CakeCue_C06_Frosting',               file: A + '06_Components/CakeCue_C06_Frosting.svg' }
-  ];
-
   var MONOGRAM = {
     id: 'mono_06_cc_skeleton', code: 'M', name: 'CakeCue_06_CC_Monogram_Skeleton',
     file: A + '02_Exploration_Variants/CakeCue_06_CC_Monogram_Skeleton.svg'
@@ -188,7 +155,6 @@
     coreFirstImpression: CORE_FIRST_IMPRESSION,
     coreLaterRounds: CORE_LATER_ROUNDS,
     process: PROCESS,
-    components: COMPONENTS,
     monogram: MONOGRAM,
     flexibility: FLEXIBILITY,
     flexibilityDeeper: FLEXIBILITY_DEEPER,
@@ -212,7 +178,7 @@
 
     // Look up any asset anywhere by its id.
     byId: function (id) {
-      var pools = [CORE, PROCESS, COMPONENTS, [MONOGRAM], FLEXIBILITY, FLEXIBILITY_DEEPER, DECORATION, DISTRACTORS, BOARDS];
+      var pools = [CORE, PROCESS, [MONOGRAM], FLEXIBILITY, FLEXIBILITY_DEEPER, DECORATION, DISTRACTORS, BOARDS];
       for (var i = 0; i < pools.length; i++) {
         for (var j = 0; j < pools[i].length; j++) {
           if (pools[i][j].id === id) return pools[i][j];
@@ -247,7 +213,7 @@
     { value: 'creative',     en: 'creative',     fa: 'خلاق',        valence: 'pos' },
     { value: 'warm',         en: 'warm',         fa: 'گرم',         valence: 'pos' },
     { value: 'clever',       en: 'clever',       fa: 'زیرکانه',     valence: 'pos' },
-    { value: 'handmade',     en: 'handmade',     fa: 'دست��ساز',     valence: 'pos' },
+    { value: 'handmade',     en: 'handmade',     fa: 'دست‌ساز',     valence: 'pos' },
     { value: 'playful',      en: 'playful',      fa: 'بازیگوش',     valence: 'pos' },
     { value: 'modern',       en: 'modern',       fa: 'مدرن',        valence: 'pos' },
     { value: 'premium',      en: 'premium',      fa: 'لوکس',        valence: 'pos' },
@@ -541,25 +507,24 @@
 
       // Build the cake
       b_h: 'Build the cake',
-      b_p: 'These are the parts this mark is made from. Build the cake: drag every piece onto the stage and put it where you think it belongs.',
-      b_hint: 'Drag each piece onto the stage and arrange it the way you think the cake goes together. You can move pieces again after placing them.',
+      b_p: 'These are the pieces this mark is made from, shuffled. Put them in the order you think it gets built — first step at the top, finished at the bottom.',
+      b_hint: 'Drag a piece into a step. Or tap a piece, then tap the step you want it in.',
       b_tray: 'Pieces',
-      b_tray_empty: 'Every piece is on the stage.',
-      b_stage: 'Your cake',
-      b_stage_empty: 'Drop the pieces here',
-      b_count: '{done} of {total} pieces placed',
-      b_place_center: 'Place in the middle',
-      b_return: 'Return to pieces',
-      b_drag_hint: 'drag to move, arrow keys to nudge, delete to remove',
+      b_tray_empty: 'All placed.',
+      b_slots: 'Your build order',
+      b_slot: 'Step {n}',
+      b_empty: 'Empty',
+      b_place: 'Place the selected piece here',
+      b_take: 'Take out',
       b_reset: 'Start over',
-      b_all_pieces: 'Place all six pieces on the stage before moving on.',
-      b_q_finished: 'Look at what you built. Does it feel like a finished cake?',
+      b_all_slots: 'Place all five pieces before moving on.',
+      b_q_finished: 'Look at the step you put last. Does it feel like a finished thing?',
       b_q_finished_lo: 'still unfinished',
       b_q_finished_hi: 'completely finished',
       b_q_essential: 'Which single piece does the most work? Without it the rest stops making sense.',
       b_q_removable: 'Which piece could you drop and still keep the idea?',
-      b_q_reason: 'How did you decide where the pieces go?',
-      b_q_reason_ph: 'What told you what went where…',
+      b_q_reason: 'How did you decide the order?',
+      b_q_reason_ph: 'What told you which one came first…',
 
       // Thanks
       thanks_h: 'Thank you — that was really helpful.',
@@ -665,25 +630,24 @@
 
       // Build the cake
       b_h: 'کیک را بسازید',
-      b_p: 'این‌ها اجزایی هستند که این نشانه از آن‌ها ساخته شده است. کیک را بسازید: هر قطعه را روی صحنه بکشید و جایی که فکر می‌کنید به آن تعلق دارد بگذارید.',
-      b_hint: 'هر قطعه را روی صحنه بکشید و همان‌طور که فکر می‌کنید کیک ساخته می‌شود بچینید. بعد از قرار دادن هم می‌توانید قطعه‌ها را جابه‌جا کنید.',
+      b_p: 'این‌ها قطعه‌هایی هستند که این نشانه از آن‌ها ساخته شده و به‌هم‌ریخته‌اند. به ترتیبی که فکر می‌کنید ساخته می‌شود بچینید — مرحلهٔ اول بالا، حالت نهایی پایین.',
+      b_hint: 'یک قطعه را به داخل یک مرحله بکشید. یا روی قطعه بزنید و بعد روی مرحلهٔ مورد نظر.',
       b_tray: 'قطعه‌ها',
-      b_tray_empty: 'همهٔ قطعه‌ها روی صحنه هستند.',
-      b_stage: 'کیک شما',
-      b_stage_empty: 'قطعه‌ها را اینجا رها کنید',
-      b_count: '{done} از {total} قطعه چیده شد',
-      b_place_center: 'در میانه قرار بگیرد',
-      b_return: 'بازگشت به قطعه‌ها',
-      b_drag_hint: 'برای جابه‌جایی بکشید، با کلیدهای جهت‌دار حرکت دهید، با delete حذف کنید',
+      b_tray_empty: 'همه چیده شدند.',
+      b_slots: 'ترتیب ساخت شما',
+      b_slot: 'مرحلهٔ {n}',
+      b_empty: 'خالی',
+      b_place: 'قطعهٔ انتخاب‌شده اینجا قرار بگیرد',
+      b_take: 'بردار',
       b_reset: 'از نو',
-      b_all_pieces: 'قبل از ادامه، همهٔ شش قطعه را روی صحنه بگذارید.',
-      b_q_finished: 'به چیزی که ساختید نگاه کنید. حس یک کیک تمام‌شده را دارد؟',
+      b_all_slots: 'قبل از ادامه، همهٔ پنج قطعه را بچینید.',
+      b_q_finished: 'به مرحله‌ای که آخر گذاشتید نگاه کنید. حس یک چیز تمام‌شده را دارد؟',
       b_q_finished_lo: 'هنوز ناتمام',
       b_q_finished_hi: 'کاملاً تمام‌شده',
       b_q_essential: 'کدام قطعه بیشترین نقش را دارد؟ بدون آن بقیه بی‌معنا می‌شود.',
       b_q_removable: 'کدام قطعه را می‌شد حذف کرد و ایده باز هم باقی می‌ماند؟',
-      b_q_reason: 'چطور تصمیم گرفتید هر قطعه کجا برود؟',
-      b_q_reason_ph: 'چه چیزی به شما گفت چه چیزی کجا می‌رود…',
+      b_q_reason: 'چطور ترتیب را انتخاب کردید؟',
+      b_q_reason_ph: 'چه چیزی به شما گفت کدام اول است…',
 
       thanks_h: 'ممنون — واقعاً کمک کرد.',
       thanks_p: 'پاسخ‌های شما ثبت شد.',
