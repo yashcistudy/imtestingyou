@@ -197,6 +197,9 @@
         game7:  core.map(idOf),
         game13: flex.map(idOf),
         game23: core.map(idOf),
+        // Build game: the six authored components, shuffled so the tray
+        // never hands over a ready-made stack.
+        build:  shuffle(A.components, rnd).map(idOf),
         micro1: shuffle(A.process, rnd).map(idOf),
         micro2: [A.monogram.id],
         micro3: A.decoration.map(idOf)
@@ -311,6 +314,90 @@
         }
       }
       return total ? agree / total : null;
+    },
+
+    /* Build game: does the assembled cake respect the authored stack?
+
+       Ground truth is the `tier` on each component, which comes from your own
+       labels: bottom cake, upper layer, top cake, frosting last. For every
+       pair of pieces on different tiers we ask whether the higher tier ended
+       up higher on the stage. Pairwise concordance, 0..1, so it stays
+       comparable to the sequence score. Pieces sharing a tier are skipped,
+       because their relative height is not something you specified and
+       marking it right or wrong would be inventing an answer. */
+    buildScore: function (s) {
+      var g = s.games.build;
+      if (!g || !g.placed) return null;
+      var A = window.CC_ASSETS;
+      var ids = Object.keys(g.placed);
+      if (ids.length < 2) return null;
+      var agree = 0, total = 0, i, j;
+      for (i = 0; i < ids.length; i++) {
+        for (j = i + 1; j < ids.length; j++) {
+          var a = A.byId(ids[i]), b = A.byId(ids[j]);
+          if (!a || !b || a.tier === undefined || b.tier === undefined) continue;
+          if (a.tier === b.tier) continue;
+          total++;
+          var upper = a.tier > b.tier ? g.placed[ids[i]] : g.placed[ids[j]];
+          var lower = a.tier > b.tier ? g.placed[ids[j]] : g.placed[ids[i]];
+          if (upper.y < lower.y) agree++;      // smaller y sits further up
+        }
+      }
+      return total ? agree / total : null;
+    },
+
+    // Did the frosting, your stated final touch, end up as the topmost piece?
+    buildFrostingTop: function (s) {
+      var g = s.games.build;
+      if (!g || !g.placed) return null;
+      var A = window.CC_ASSETS;
+      var best = null, bestId = null;
+      Object.keys(g.placed).forEach(function (id) {
+        var p = g.placed[id];
+        if (best === null || p.y < best) { best = p.y; bestId = id; }
+      });
+      if (!bestId) return null;
+      var a = A.byId(bestId);
+      return !!(a && a.tier === 4);
+    },
+
+    // Is a bottom-tier part the lowest thing on the stage?
+    buildBaseBottom: function (s) {
+      var g = s.games.build;
+      if (!g || !g.placed) return null;
+      var A = window.CC_ASSETS;
+      var best = null, bestId = null;
+      Object.keys(g.placed).forEach(function (id) {
+        var p = g.placed[id];
+        if (best === null || p.y > best) { best = p.y; bestId = id; }
+      });
+      if (!bestId) return null;
+      var a = A.byId(bestId);
+      return !!(a && a.tier === 1);
+    },
+
+    /* How many of the two layers were dropped inside the bottom structure?
+       This is the nesting reading: does the frame register as a container
+       that things go into, or as just another shape to stack? 0, 1 or 2. */
+    buildLayersInFrame: function (s) {
+      var g = s.games.build;
+      if (!g || !g.placed) return null;
+      var A = window.CC_ASSETS;
+      var frameId = null;
+      Object.keys(g.placed).forEach(function (id) {
+        var a = A.byId(id);
+        if (a && a.frame) frameId = id;
+      });
+      if (!frameId) return null;
+      var f = g.placed[frameId];
+      var inside = 0;
+      Object.keys(g.placed).forEach(function (id) {
+        var a = A.byId(id);
+        if (!a || !a.layer) return;
+        var p = g.placed[id];
+        if (Math.abs(p.x - f.x) <= f.w / 2 && Math.abs(p.y - f.y) <= f.h / 2) inside++;
+      });
+      return inside;
     },
 
     // Per-asset roll-up used by the dashboard candidate comparison table.
@@ -443,6 +530,18 @@
     var g10 = s.games.game10 || {};
     var g13 = s.games.game13 || {};
     var g23 = s.games.game23 || {};
+    var bld = s.games.build || {};
+    // Placement order, so "what did they reach for first" is answerable.
+    var bldSeq = Object.keys(bld.placed || {}).sort(function (x, y) {
+      return bld.placed[x].seq - bld.placed[y].seq;
+    });
+    // Full layout, normalised 0..1 of the stage, in placement order. Kept as
+    // one field so the geometry survives into the CSV without 12 columns.
+    var bldLayout = bldSeq.map(function (id) {
+      var p = bld.placed[id];
+      return nameOf(id) + '@' + p.x + ',' + p.y;
+    }).join(' | ');
+    function yn(v) { return (v === null || v === undefined) ? '' : (v ? 'yes' : 'no'); }
     var m1 = s.games.micro1 || {};
     var m2 = s.games.micro2 || {};
     var m3 = s.games.micro3 || {};
@@ -506,6 +605,20 @@
       game_23_most_participatory: g23.participatory ? nameOf(g23.participatory) : '',
       game_23_reason: g23.reason ? clean(g23.reason) : '',
 
+      build_placed_count: bld.placed ? bldSeq.length : '',
+      build_stack_score: bld.placed ? (round(Score.buildScore(s), 2) || '') : '',
+      build_frosting_on_top: yn(Score.buildFrostingTop(s)),
+      build_base_at_bottom: yn(Score.buildBaseBottom(s)),
+      build_layers_inside_frame: Score.buildLayersInFrame(s) === null ? '' : Score.buildLayersInFrame(s),
+      build_first_piece: bldSeq.length ? nameOf(bldSeq[0]) : '',
+      build_last_piece: bldSeq.length ? nameOf(bldSeq[bldSeq.length - 1]) : '',
+      build_layout: bldLayout,
+      build_essential_piece: bld.essential ? nameOf(bld.essential) : '',
+      build_removable_piece: bld.removable ? nameOf(bld.removable) : '',
+      build_finished_score: bld.finished_score || '',
+      build_moves: bld.moves === undefined ? '' : bld.moves,
+      build_response_time_ms: bld.response_time_ms === undefined ? '' : bld.response_time_ms,
+      build_reason: bld.reason ? clean(bld.reason) : '',
       micro_sequence_order: m1.order ? m1.order.map(nameOf).join('|') : '',
       micro_sequence_score: m1.order ? (round(Score.sequenceScore(s), 2) || '') : '',
       micro_monogram_reading: m2.reading ? clean(m2.reading) : '',

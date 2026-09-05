@@ -151,6 +151,52 @@ for (var i = 0; i < N; i++) {
     weakest: pick(A.flexibility.map(function (a) { return a.id; }))
   };
 
+  /* Build the cake: invented placements so the dashboard card is not empty.
+     The rough layout below is a plausible cake, not a finding. Most sample
+     participants stack bottom to top with the frosting last; a minority
+     scramble two tiers, and a few place things almost at random. Delete
+     data/sample-results.* before running real participants. */
+  var LAYOUT = {
+    comp_c01_bottom_structure: [0.50, 0.62],
+    comp_c02_bottom_layer:     [0.50, 0.72],
+    comp_c03_top_layer:        [0.50, 0.56],
+    comp_c04_top_structure:    [0.50, 0.40],
+    comp_c05_top_slice:        [0.58, 0.36],
+    comp_c06_frosting:         [0.50, 0.20]
+  };
+  var MAXW = 677, SHARE = 0.42, ASPECT = 4 / 3;
+  var placed = {};
+  var seq = 0;
+  var order = A.components.slice();
+  if (chance(0.25)) order.reverse();                 // built from the top down
+  order.forEach(function (a) {
+    var target = LAYOUT[a.id] || [0.5, 0.5];
+    var x = target[0], y = target[1];
+    if (chance(0.18)) { y = 0.15 + rnd() * 0.7; }     // misread the relation
+    var nw = (a.w / MAXW) * SHARE;
+    placed[a.id] = {
+      seq: ++seq,
+      x: Math.round((x + (rnd() - 0.5) * 0.06) * 1000) / 1000,
+      y: Math.round((y + (rnd() - 0.5) * 0.06) * 1000) / 1000,
+      w: Math.round(nw * 1000) / 1000,
+      h: Math.round(nw * (a.h / a.w) * ASPECT * 1000) / 1000
+    };
+  });
+  games.build = {
+    placed: placed,
+    moves: 6 + Math.floor(rnd() * 9),
+    essential: chance(0.5) ? 'comp_c01_bottom_structure' : pick(A.components.map(function (a) { return a.id; })),
+    removable: chance(0.45) ? 'comp_c06_frosting' : pick(A.components.map(function (a) { return a.id; })),
+    finished_score: clamp5(3.8 + (rnd() - 0.5) * 1.6),
+    reason: pick([
+      'The frame had to go round the bottom, everything else sits inside it.',
+      'I put the frosting on top because that is the last thing you do.',
+      'The small one goes above the big one, like a two-tier cake.',
+      'I was not sure where the slice belonged.'
+    ]),
+    response_time_ms: Math.round(30000 + rnd() * 40000)
+  };
+
   // Game 23 - final decision
   var fin = chance(0.62) ? pick(['core_31_slice_light', 'core_32_slice_dark']) : pick(CORE);
   games.game23 = {
@@ -162,7 +208,7 @@ for (var i = 0; i < N; i++) {
     reason: pick(WHY_FINAL)
   };
 
-  if (!complete) { delete games.game13; delete games.game23; }
+  if (!complete) { delete games.game13; delete games.build; delete games.game23; }
 
   sessions.push({
     participant_id: 'sample-' + String(i + 1).padStart(3, '0'),
