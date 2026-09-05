@@ -195,6 +195,7 @@
     coreFirstImpression: CORE_FIRST_IMPRESSION,
     coreLaterRounds: CORE_LATER_ROUNDS,
     process: PROCESS,
+    components: COMPONENTS,
     monogram: MONOGRAM,
     flexibility: FLEXIBILITY,
     flexibilityDeeper: FLEXIBILITY_DEEPER,
@@ -218,7 +219,7 @@
 
     // Look up any asset anywhere by its id.
     byId: function (id) {
-      var pools = [CORE, PROCESS, [MONOGRAM], FLEXIBILITY, FLEXIBILITY_DEEPER, DECORATION, DISTRACTORS, BOARDS];
+      var pools = [CORE, PROCESS, COMPONENTS, [MONOGRAM], FLEXIBILITY, FLEXIBILITY_DEEPER, DECORATION, DISTRACTORS, BOARDS];
       for (var i = 0; i < pools.length; i++) {
         for (var j = 0; j < pools[i].length; j++) {
           if (pools[i][j].id === id) return pools[i][j];
@@ -426,7 +427,7 @@
        which piece they treat as load-bearing, and whether the last state
        reads as a finished thing. This supersedes 'micro1' — never run both,
        or the same person is asked to order the same five pieces twice. */
-    { key: 'build',  screen: 'game_build',       sample: null, pool: 'process' },
+    { key: 'build',  screen: 'game_build',       sample: null, pool: 'components' },
     { key: 'micro3', screen: 'micro_decoration', extendedOnly: true },
     { key: 'game23', screen: 'game23_final',     sample: null, pool: 'coreAll' },
 
@@ -557,7 +558,7 @@
       b_place: 'Place the selected piece here',
       b_take: 'Take out',
       b_reset: 'Start over',
-      b_all_slots: 'Place all five pieces before moving on.',
+      b_all_slots: 'Place all six pieces before moving on.',
       b_q_finished: 'Look at the step you put last. Does it feel like a finished thing?',
       b_q_finished_lo: 'still unfinished',
       b_q_finished_hi: 'completely finished',
