@@ -54,6 +54,46 @@
     { id: 'proc_04_undecorated',step: 4, code: 'P4', name: 'CakeCue_04_Finished_Cake_Undecorated',file: A + '01_Process_Narrative/CakeCue_04_Finished_Cake_Undecorated.svg' },
     { id: 'proc_05_decorated',  step: 5, code: 'P5', name: 'CakeCue_05_Decorated_Frame',         file: A + '01_Process_Narrative/CakeCue_05_Decorated_Frame.svg' }
   ];
+  // Build game component pieces
+  // These are individual construction elements, not process states.
+  var COMPONENTS = [
+    {
+      id: 'component_01',
+      code: 'C1',
+      name: 'CakeCue Component 01',
+      file: A + '06_Components/CakeCue_C01_Bottom_Cake_Structure.svg'
+    },
+    {
+      id: 'component_02',
+      code: 'C2',
+      name: 'CakeCue Component 02',
+      file: A + '06_Components/CakeCue_C02_Bottom_Layer.svg'
+    },
+    {
+      id: 'component_03',
+      code: 'C3',
+      name: 'CakeCue Component 03',
+      file: A + '06_Components/CakeCue_C03_Top_Layer.svg'
+    },
+    {
+      id: 'component_04',
+      code: 'C4',
+      name: 'CakeCue Component 04',
+      file: A + '06_Components/CakeCue_C04_Top_Cake_Structure.svg'
+    },
+    {
+      id: 'component_05',
+      code: 'C5',
+      name: 'CakeCue Component 05',
+      file: A + '06_Components/CakeCue_C05_Top_Slice.svg'
+    },
+    {
+      id: 'component_06',
+      code: 'C6',
+      name: 'CakeCue Component 06',
+      file: A + '06_Components/CakeCue_C06_Frosting.svg'
+    }
+  ];
 
   var MONOGRAM = {
     id: 'mono_06_cc_skeleton', code: 'M', name: 'CakeCue_06_CC_Monogram_Skeleton',
